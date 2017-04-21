@@ -1,6 +1,14 @@
-
-<div id="mainContent">
 <input type="text" name="" id="first"/>
 <input type="text" name="" id="second"/>
 <input type="text" name="" id="third"/>
 <script type="text/javascript" src="bind.js"></script>
+
+<script>
+
+	Bind.all([
+	    DomVariable.id('first'),
+	    DomVariable.id('second'),
+	    DomVariable.id('third')
+	]);
+
+</script>

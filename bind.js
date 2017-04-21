@@ -78,9 +78,3 @@ class DomVariable extends Variable {
         this.value = value;
     }
 }
-
-Bind.all([
-    DomVariable.id('first'),
-    DomVariable.id('second'),
-    DomVariable.id('third')
-]);
