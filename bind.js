@@ -46,7 +46,7 @@ class Bind {
         });
     }
     
-    static all(...[variables]) {
+    static all(...variables) {
         return new Bind(variables);
     }
     

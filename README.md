@@ -11,9 +11,9 @@
 
 ### JS
 ```javascript
-Bind.all([
+Bind.all(
     DomVariable.id('first'),
     DomVariable.id('second'),
     DomVariable.id('third')
-]);
+);
 ```
