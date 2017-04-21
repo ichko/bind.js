@@ -21,5 +21,4 @@ Bind.all(
 );
 
 model.change('test');
-);
 ```
