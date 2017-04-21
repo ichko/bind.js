@@ -11,14 +11,14 @@
 
 ### JS
 ```javascript
-let model = new Variable(5);
+import { dom, val } from './bind';
 
-Bind.all(
-    model,
-    DomVariable.id('first'),
-    DomVariable.id('second'),
-    DomVariable.id('third')
+let model = val('TEST ').bind(
+    dom('#first'),
+    dom('#second'),
+    dom('#third')
 );
 
-model.change('test');
+let time = 0;
+setInterval(_ => model.append(`${ time++ } `), 500);
 ```
