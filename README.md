@@ -1,17 +1,18 @@
 ## JS Data binding
+ES6 data binding lib
 
 ## Examples
 
-### Simple
+#### Simple
 
-#### HTML
+HTML
 ```html
 <input type="text" id="first"/>
 <input type="text" id="second"/>
 <input type="text" id="third"/>
 ```
 
-#### JS
+JS
 ```javascript
 import { dom, val } from './bind';
 
@@ -25,14 +26,15 @@ let time = 0;
 setInterval(_ => model.append(`${ time++ } `), 500);
 ```
 
-### Cyclical bindings
+#### Cyclical bindings
+HTML
 ```html
 <input id="foo"/>
 <input id="bar"/>
 <input id="moo"/>
 ```
 
-#### JS
+JS
 ```javascript
 let model = obj({
     foo: {
