@@ -7,6 +7,10 @@ export class Broadcaster {
         this.observers.add(observer);
     }
     
+    unsubscribe(observer) {
+        this.observers.delete(observer);
+    }
+    
     notify(value) {
         this.observers.forEach(observer => observer.update(value));
     }
@@ -19,8 +23,11 @@ export class Variable extends Broadcaster {
     }
     
     change(value) {
-        this.set(value);
-        this.notify(value);
+        if (value != this.value) {
+            this.set(value);
+            this.notify(value);
+        }
+
         return this;
     }
     
@@ -53,11 +60,12 @@ export class Bind {
         this.variables = new Set([...this.variables, ...new Set(variables)]);
         variables.forEach(variable => {
             variable.change(this.value);
-            variable.subscribe({ update: value => {
+            this.observer = { update: value => {
                 this.variables.delete(variable);
                 this.change(value);
                 this.variables.add(variable);
-            }});
+            }};
+            variable.subscribe(this.observer);
         });
     
         return this;
@@ -71,7 +79,7 @@ export class Bind {
     
     change(value) {
         this.value = value;
-        this.variables.forEach(variable => variable.set(value));
+        this.variables.forEach(variable => variable.change(value));
     }
     
     get() {
@@ -108,8 +116,26 @@ export class DomVariable extends Variable {
     }
 }
 
+
 export function val(value, ...binds) {
     return new Variable(value).bind(...binds);
+}
+
+export function obj(object) {
+    function recursive(object) {
+        let proxy = object;
+        if (typeof object === 'object') {
+            for (let name in object) {
+                proxy[name] = recursive(object[name]);
+            }
+        } else {
+            return val(object);
+        }
+        
+        return proxy;
+    }
+    
+    return recursive(object);
 }
 
 export function dom(selector) {
