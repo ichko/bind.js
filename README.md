@@ -36,6 +36,8 @@ HTML
 
 JS
 ```javascript
+import { dom, obj } from './bind';
+
 let model = obj({
     foo: {
         bar: 'hello',
