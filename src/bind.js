@@ -1,4 +1,4 @@
-class Broadcaster {
+export class Broadcaster {
     constructor() {
         this.observers = new Set();
     }
@@ -12,7 +12,7 @@ class Broadcaster {
     }
 }
 
-class Variable extends Broadcaster {
+export class Variable extends Broadcaster {
     constructor(initial) {
         super();
         this.value = initial;
@@ -21,33 +21,52 @@ class Variable extends Broadcaster {
     change(value) {
         this.set(value);
         this.notify(value);
+        return this;
+    }
+    
+    append(value) {
+        return this.change(this.get() + value);
     }
     
     set(value) {
         this.value = value;
+        return this;
     }
     
     get() {
         return this.value;
     }
+    
+    bind(...variables) {
+        Bind.all(...variables).with(this);
+        return this;
+    }
 }
 
-class Bind {
-    constructor(variables = [], initial) {
-        this.variables = new Set(variables);
+export class Bind {
+    constructor(initial) {
+        this.variables = new Set();
         this.value = initial;
-        this.variables.forEach(variable => {
-            initial && variable.change(initial);
+    }
+    
+    add(...variables) {
+        this.variables = new Set([...this.variables, ...new Set(variables)]);
+        variables.forEach(variable => {
+            variable.change(this.value);
             variable.subscribe({ update: value => {
                 this.variables.delete(variable);
                 this.change(value);
                 this.variables.add(variable);
             }});
         });
+    
+        return this;
     }
     
-    static all(...variables) {
-        return new Bind(variables);
+    with(variable) {
+        this.value = variable.get();
+        this.add(variable);
+        this.change(this.value);
     }
     
     change(value) {
@@ -58,14 +77,23 @@ class Bind {
     get() {
         this.value;
     }
+    
+    static all(...variables) {
+        return new Bind().add(...variables);
+    }
 }
 
-class DomVariable extends Variable {
+export class DomVariable extends Variable {
     constructor(element, initial) {
         super(initial);
         this.element = element;
         this.element.addEventListener('input',
             ({ target }) => this.change(target.value));
+    }
+    
+    static select(selector) {
+        let element = document.querySelector(selector);
+        return new DomVariable(element);
     }
     
     static id(identifier) {
@@ -76,5 +104,14 @@ class DomVariable extends Variable {
     set(value) {
         this.element.value = value;
         this.value = value;
+        return this;
     }
+}
+
+export function val(value, ...binds) {
+    return new Variable(value).bind(...binds);
+}
+
+export function dom(selector) {
+    return DomVariable.select(selector);
 }

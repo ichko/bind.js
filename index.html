@@ -1,19 +1,4 @@
 <input type="text" name="" id="first"/>
 <input type="text" name="" id="second"/>
 <input type="text" name="" id="third"/>
-<script type="text/javascript" src="bind.js"></script>
-
-<script>
-
-	let model = new Variable(5);
-	
-	Bind.all(
-        model,
-	    DomVariable.id('first'),
-	    DomVariable.id('second'),
-	    DomVariable.id('third')
-	);
-	
-	model.change('test');
-
-</script>
+<script type="text/javascript" src="dist/bundle.js"></script>
