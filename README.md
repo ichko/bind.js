@@ -2,6 +2,7 @@
 ES6 data binding lib
 
 ## Examples
+You can preview the result [here](https://rawgit.com/ichko/bind.js/master/index.html).
 
 #### Simple
 
@@ -46,7 +47,9 @@ let model = obj({
     moo: 666
 });
 
-model.foo.bar.bind(dom('#foo'));
-model.moo.bind(dom('#moo'), model.foo.baz);
-model.foo.baz.bind(dom('#bar'));
+model.foo.bar.bind(dom('#foo'), dom('#bar'));
+model.foo.baz.bind(dom('#moo'), dom('#bar'), model.moo);
+
+model.moo = 'test';
+dom('#bar').append(' world');
 ```

@@ -145,6 +145,12 @@ export function obj(object) {
     return recursive(object);
 }
 
+let domVariables = {};
+
 export function dom(selector) {
-    return DomVariable.select(selector);
+    if (!domVariables[selector]) {
+        domVariables[selector] = DomVariable.select(selector);
+    }
+
+    return domVariables[selector];
 }
