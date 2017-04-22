@@ -126,10 +126,17 @@ export function obj(object) {
         let proxy = object;
         if (typeof object === 'object') {
             for (let name in object) {
-                proxy[name] = recursive(object[name]);
+                if (typeof object[name] === 'object') {
+                    proxy[name] = recursive(object[name]);
+                } else {
+                    let namedVariable = new Variable(object[name]);
+                    proxy[name] = namedVariable;
+                    Object.defineProperty(proxy, name, {
+                        set: value => namedVariable.change(value),
+                        get: () => namedVariable
+                    });
+                }
             }
-        } else {
-            return val(object);
         }
         
         return proxy;
