@@ -1,5 +1,5 @@
 ## JS Data binding
-ES6 data binding lib
+JS lib for bidirectional data binding writen in ES6.
 
 ## Examples
 Demo in action [here](https://rawgit.com/ichko/bind.js/master/index.html).
