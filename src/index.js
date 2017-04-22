@@ -20,7 +20,7 @@ let model = obj({
 model.foo.bar.bind(dom('#foo'), dom('#bar'));
 model.foo.baz.bind(dom('#moo'), dom('#bar'), model.moo);
 
-model.moo = 'test';
-dom('#bar').append(' world');
+model.moo = Array(4).join('wat' - 1);
+dom('#foo').append(' Batman!');
 
 console.log(model);

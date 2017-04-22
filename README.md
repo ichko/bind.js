@@ -2,15 +2,15 @@
 ES6 data binding lib
 
 ## Examples
-You can preview the result [here](https://rawgit.com/ichko/bind.js/master/index.html).
+Demo in action [here](https://rawgit.com/ichko/bind.js/master/index.html).
 
 #### Simple
 
 HTML
 ```html
-<input type="text" id="first"/>
-<input type="text" id="second"/>
-<input type="text" id="third"/>
+<input id="first"/>
+<input id="second"/>
+<input id="third"/>
 ```
 
 JS
@@ -50,6 +50,6 @@ let model = obj({
 model.foo.bar.bind(dom('#foo'), dom('#bar'));
 model.foo.baz.bind(dom('#moo'), dom('#bar'), model.moo);
 
-model.moo = 'test';
-dom('#bar').append(' world');
+model.moo = Array(4).join('wat' - 1);
+dom('#foo').append(' Batman!');
 ```
