@@ -110,12 +110,12 @@ export class DomVariable extends Variable {
     }
     
     set(value) {
-        this.element.value = value;
-        this.value = value;
+        if (this.element.value != value) {
+            this.element.value = this.value = value;
+        }
         return this;
     }
 }
-
 
 export function val(value, ...binds) {
     return new Variable(value).bind(...binds);
