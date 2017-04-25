@@ -13,8 +13,10 @@ class Engine {
     
     getInstanceParams() {
         return {
-            renderAll: (...args) => this.renderAll(...args),
             render: (...args) => this.render(...args),
+            renderAll: (...args) => this.renderAll(...args),
+            asyncRenderAll: (...args) => this.asyncRenderAll(...args),
+            asyncRender: (...args) => this.asyncRender(...args),
             components: this.container
         };
     }
@@ -23,11 +25,24 @@ class Engine {
         return new component(this.getInstanceParams());
     }
     
+    render(component, ...params) {
+        return this.instantiate(component)[renderMethodName](...params);
+    }
+    
     renderAll(...components) {
+        return (...params) => {
+            let result = {};
+            components.forEach(component =>
+                result[component.name] = this.render(component, ...params));
+            return result;
+        };
+    }
+    
+    asyncRenderAll(...components) {
         return (...params) => new Promise((resolve, reject) => {
             let renderedComponents = {};
             let renderedComponentsCnt = 0;
-            components.forEach(component => this.render(component, ...params).then(rendering => {
+            components.forEach(component => this.asyncRender(component, ...params).then(rendering => {
                 renderedComponents[component.name] = rendering;
                 if (++renderedComponentsCnt >= components.length) {
                     resolve(renderedComponents);
@@ -36,7 +51,7 @@ class Engine {
         });
     }
 
-    render(component, ...params) {
+    asyncRender(component, ...params) {
         return new Promise((resolve, reject) => {
             let instance = this.instantiate(component),
                 instanceRender = () => resolve(instance[renderMethodName](...params));
@@ -72,8 +87,8 @@ class Button {
 }
 
 class HomePage {
-    await(done, { renderAll, components }) {
-        renderAll(components.Message, components.Button)({
+    await(done, { asyncRenderAll, components }) {
+        asyncRenderAll(components.Message, components.Button)({
             message: 'home page',
             type: 'success'
         }).then(html => {
@@ -101,4 +116,4 @@ let engine = new Engine().register(
     Button
 );
 
-engine.render(HomePage, { subtitle: 'subtitle' }).then(console.log);
+engine.asyncRender(HomePage, { subtitle: 'subtitle' }).then(console.log);
