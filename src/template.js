@@ -13,8 +13,23 @@ class Engine {
     
     instantiate(component) {
         return new component({
-            render: params => this.render(params),
+            render: (...args) => this.renderAll(...args),
             components: this.container
+        });
+    }
+    
+    renderAll(...components) {
+        return new Promise((resolve, reject) => {
+            let renderedComponents = {};
+            let renderedComponentsCnt = 0;
+            components.forEach(component => this.render(component)
+                .then(result => {
+                    renderedComponents[component.name] = result;
+                    if (++renderedComponentsCnt === components.length) {
+                        resolve(renderedComponents);
+                    }
+                })
+                .catch(reject));
         });
     }
 
@@ -49,14 +64,14 @@ class Home {
 
 class Component {
     constructor({ render, components }) {
-        this.compRender = render;
+        this.rend = render;
         this.components = components;
         this.title = 'Hello world';
     }
     
     await(resolve) {
-        setTimeout(() => this.compRender(this.components.Home)
-            .then(homeHtml => resolve(this.homeHtml = homeHtml)), 100);
+        setTimeout(() => this.rend(this.components.Home)
+            .then(html => resolve(this.html = html)), 100);
     }
 
     render({ subtitle }) {
@@ -64,7 +79,7 @@ class Component {
             <h1>${ this.title }<h1>
             <p>${ subtitle }</p>
             <hr/>
-            <div class=sub>${ this.homeHtml }</div>
+            <div class=sub>${ this.html.Home }</div>
         `;
     }
 
@@ -76,5 +91,5 @@ let engine = new Engine().register(
     Home
 );
 
-engine.render(Component, { subtitle: 'sub title' })
+engine.render(Component, { subtitle: 'subtitle' })
     .then(html => console.log(html));
