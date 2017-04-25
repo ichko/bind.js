@@ -24,10 +24,10 @@ class Engine {
     }
     
     renderAll(...components) {
-        return new Promise((resolve, reject) => {
+        return (...params) => new Promise((resolve, reject) => {
             let renderedComponents = {};
             let renderedComponentsCnt = 0;
-            components.forEach(component => this.render(component).then(rendering => {
+            components.forEach(component => this.render(component, ...params).then(rendering => {
                 renderedComponents[component.name] = rendering;
                 if (++renderedComponentsCnt >= components.length) {
                     resolve(renderedComponents);
@@ -43,7 +43,7 @@ class Engine {
 
             if (instance[awaitMethodName] !== undefined) {
                 new Promise((awaitResolve, awaitReject) =>
-                    instance[awaitMethodName](awaitResolve, awaitReject, this.getInstanceParams()))
+                    instance[awaitMethodName](awaitResolve, this.getInstanceParams()))
                 .then(instanceRender)
                 .catch(reject);
             } else {
@@ -65,14 +65,22 @@ class Message {
     }
 }
 
-class HomePage {
-    constructor() {
-        this.title = 'Hello world';
+class Button {
+    render({ text } = {}) {
+        return `<button></button>`;
     }
-    
-    await(resolve, reject, { render, components }) {
-        render(components.Message, { message: 'home page', type: 'success' })
-            .then(msg => resolve(this.msg = msg));
+}
+
+class HomePage {
+    await(done, { renderAll, components }) {
+        renderAll(components.Message, components.Button)({
+            message: 'home page',
+            type: 'success'
+        }).then(html => {
+            this.html = html;
+            this.title = 'Hello world';
+            done();
+        });
     }
 
     render({ subtitle }) {
@@ -80,7 +88,7 @@ class HomePage {
             <h1>${ this.title }<h1>
             <p>${ subtitle }</p>
             <hr/>
-            <div class="body">${ this.msg }</div>
+            <div class="body">${ this.html.Message } ${ this.html.Button }</div>
         `;
     }
 
@@ -89,7 +97,8 @@ class HomePage {
 
 let engine = new Engine().register(
     HomePage,
-    Message
+    Message,
+    Button
 );
 
 engine.render(HomePage, { subtitle: 'subtitle' }).then(console.log);
