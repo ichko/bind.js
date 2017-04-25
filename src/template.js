@@ -11,41 +11,44 @@ class Engine {
         return this;
     }
     
-    instantiate(component) {
-        return new component({
-            render: (...args) => this.renderAll(...args),
+    getInstanceParams() {
+        return {
+            renderAll: (...args) => this.renderAll(...args),
+            render: (...args) => this.render(...args),
             components: this.container
-        });
+        };
+    }
+    
+    instantiate(component) {
+        return new component(this.getInstanceParams());
     }
     
     renderAll(...components) {
         return new Promise((resolve, reject) => {
             let renderedComponents = {};
             let renderedComponentsCnt = 0;
-            components.forEach(component => this.render(component)
-                .then(result => {
-                    renderedComponents[component.name] = result;
-                    if (++renderedComponentsCnt === components.length) {
-                        resolve(renderedComponents);
-                    }
-                })
-                .catch(reject));
+            components.forEach(component => this.render(component).then(rendering => {
+                renderedComponents[component.name] = rendering;
+                if (++renderedComponentsCnt >= components.length) {
+                    resolve(renderedComponents);
+                }
+            }).catch(reject));
         });
     }
 
-    render(component, params) {
+    render(component, ...params) {
         return new Promise((resolve, reject) => {
             let instance = this.instantiate(component),
-                instanceRender = () => resolve(instance[renderMethodName](params));
+                instanceRender = () => resolve(instance[renderMethodName](...params));
 
             if (instance[awaitMethodName] !== undefined) {
                 new Promise((awaitResolve, awaitReject) =>
-                    instance[awaitMethodName](awaitResolve, awaitReject))
+                    instance[awaitMethodName](awaitResolve, awaitReject, this.getInstanceParams()))
                 .then(instanceRender)
                 .catch(reject);
             } else {
                 try {
-                    resolve(instanceRender());
+                    instanceRender();
                 } catch(error) {
                     reject(error);
                 }
@@ -56,22 +59,20 @@ class Engine {
 
 
 
-class Home {
-    render() {
-        return `This is the home page!`;
+class Message {
+    render({ message, type  = 'info' } = {}) {
+        return `<h1 class="${ type }">${ message }</h1>`;
     }
 }
 
-class Component {
-    constructor({ render, components }) {
-        this.rend = render;
-        this.components = components;
+class HomePage {
+    constructor() {
         this.title = 'Hello world';
     }
     
-    await(resolve) {
-        setTimeout(() => this.rend(this.components.Home)
-            .then(html => resolve(this.html = html)), 100);
+    await(resolve, reject, { render, components }) {
+        render(components.Message, { message: 'home page', type: 'success' })
+            .then(msg => resolve(this.msg = msg));
     }
 
     render({ subtitle }) {
@@ -79,7 +80,7 @@ class Component {
             <h1>${ this.title }<h1>
             <p>${ subtitle }</p>
             <hr/>
-            <div class=sub>${ this.html.Home }</div>
+            <div class="body">${ this.msg }</div>
         `;
     }
 
@@ -87,9 +88,8 @@ class Component {
 
 
 let engine = new Engine().register(
-    Component,
-    Home
+    HomePage,
+    Message
 );
 
-engine.render(Component, { subtitle: 'subtitle' })
-    .then(html => console.log(html));
+engine.render(HomePage, { subtitle: 'subtitle' }).then(console.log);
