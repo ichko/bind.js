@@ -22,20 +22,23 @@ class Engine {
         return new Promise((resolve, reject) => {
             let resolvedValues = Array(values.length);
             let resolutionCnt = 0;
+            let fireResolution = () => {
+                if (++resolutionCnt >= values.length) {
+                    resolve(strings.map((string, id) => string + resolvedValues[id] ?
+                        resolvedValues[id] : '').join(''));
+                }
+            };
             values.forEach((value, id) => {
                 if (value.then !== undefined) {
                     value.then(resolution => {
                         resolvedValues[id] = resolution;
                         resolutionCnt++;
+                        fireResolution();
                     });
                 } else {
                     resolvedValues[id] = value;
                     resolutionCnt++;
-                }       
-                if (++resolutionCnt >= values.length) {
-                    let resolvedTemplate = strings.map((string, id) =>
-                        string + resolvedValues[id] ? resolvedValues[id] : '').join('');
-                    resolve(resolvedTemplate);
+                    fireResolution();
                 }
             });
         });
@@ -49,7 +52,7 @@ class Engine {
 
 
 class Message {
-    template({ message, type  = 'info' } = {}, _) {
+    template({ message, type  = 'info' } = {}, { _ }) {
         return _`<h1 class="${ type }">${ message }</h1>`;
     }
 }
