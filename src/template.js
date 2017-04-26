@@ -87,15 +87,10 @@ class Button {
 }
 
 class HomePage {
-    await(done, { asyncRenderAll, components }) {
-        asyncRenderAll(components.Message, components.Button)({
-            message: 'home page',
-            type: 'success'
-        }).then(html => {
-            this.html = html;
-            this.title = 'Hello world';
-            done();
-        });
+    constructor({ render, components }) {
+        this.title = 'Hello world';
+        this.rend = render;
+        this.components = components;
     }
 
     render({ subtitle }) {
@@ -103,7 +98,10 @@ class HomePage {
             <h1>${ this.title }<h1>
             <p>${ subtitle }</p>
             <hr/>
-            <div class="body">${ this.html.Message } ${ this.html.Button }</div>
+            <div class="body">
+                ${ this.rend(this.components.Message, { message: 'Home page' }) }
+                ${ this.rend(this.components.Button) }
+            </div>
         `;
     }
 
@@ -116,4 +114,5 @@ let engine = new Engine().register(
     Button
 );
 
-engine.asyncRender(HomePage, { subtitle: 'subtitle' }).then(console.log);
+let rendering = engine.render(HomePage, { subtitle: 'subtitle' });
+console.log(rendering);
