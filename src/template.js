@@ -1,6 +1,6 @@
 const renderMethodName = 'template';
 
-class Engine {
+class TemplateRenderer {
     constructor(container = {}) {
         this.container = container;
     }
@@ -13,71 +13,48 @@ class Engine {
     helpers() {
         return {
             render: (...args) => this.render(...args),
-            _: (...args) => this.tagTemplate(...args),
             components: this.container,
         };
     }
     
-    tagTemplate(strings, ...values) {
-        return new Promise((resolve, reject) => {
-            let resolvedValues = Array(values.length);
-            let resolutionCnt = 0;
-            let fireResolution = () => {
-                if (++resolutionCnt >= values.length) {
-                    resolve(strings.map((string, id) => string + resolvedValues[id] ?
-                        resolvedValues[id] : '').join(''));
-                }
-            };
-            values.forEach((value, id) => {
-                if (value.then !== undefined) {
-                    value.then(resolution => {
-                        resolvedValues[id] = resolution;
-                        resolutionCnt++;
-                        fireResolution();
-                    });
-                } else {
-                    resolvedValues[id] = value;
-                    resolutionCnt++;
-                    fireResolution();
-                }
-            });
-        });
+    asyncTag(strings, ...values) {
+        return new Promise((resolve, reject) => Promise.all(values)
+            .then(rendered => resolve(strings.map((string, id) =>
+                string + (rendered[id] ? rendered[id] : '')).join(''))));
     }
 
     render(component, renderParam) {
-        return new component(this.helpers())[renderMethodName](renderParam, this.helpers());
+        return Promise.resolve(new component(this.helpers())[renderMethodName](this.asyncTag, renderParam, this.helpers()));
     }
 }
 
 
 
 class Message {
-    template({ message, type  = 'info' } = {}, { _ }) {
-        return _`<h1 class="${ type }">${ message }</h1>`;
+    template($, { message, type  = 'info' } = {}) {
+        return $ `<h1 class="${ type }">${ message }</h1>`;
     }
 }
 
 class Button {
-    template({ text } = {}, { _ }) {
-        return _`<button></button>`;
+    template($) {
+        return $ `<button></button>`;
     }
 }
 
 class HomePage {
-    constructor({ render, components }) {
+    constructor() {
         this.title = 'Hello world';
-        this.rend = render;
-        this.components = components;
     }
 
-    template({ subtitle }, { _ }) {
-        return _`
+    template($, { subtitle }, { render }) {
+        return $ `
             <h1>${ this.title }<h1>
             <p>${ subtitle }</p>
             <hr/>
             <div class="body">
-                ${ this.rend(this.components.Message, { message: 'Home page' }) }
-                ${ this.rend(this.components.Button) }
+                ${ render(Message, { message: 'Home page' }) }
+                ${ render(Button) }
             </div>
         `;
     }
@@ -85,11 +62,8 @@ class HomePage {
 }
 
 
-let engine = new Engine().register(
-    HomePage,
-    Message,
-    Button
+let engine = new TemplateRenderer().register(
+    HomePage
 );
 
-let rendering = engine.render(HomePage, { subtitle: 'subtitle' });
-console.log(rendering);
+engine.render(HomePage, { subtitle: 'subtitle' }).then(console.log);
