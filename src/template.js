@@ -1,5 +1,4 @@
-const awaitMethodName = 'await';
-const renderMethodName = 'render';
+const renderMethodName = 'template';
 
 class Engine {
     constructor(container = {}) {
@@ -11,78 +10,53 @@ class Engine {
         return this;
     }
     
-    getInstanceParams() {
+    helpers() {
         return {
             render: (...args) => this.render(...args),
-            renderAll: (...args) => this.renderAll(...args),
-            asyncRenderAll: (...args) => this.asyncRenderAll(...args),
-            asyncRender: (...args) => this.asyncRender(...args),
-            components: this.container
+            _: (...args) => this.tagTemplate(...args),
+            components: this.container,
         };
     }
     
-    instantiate(component) {
-        return new component(this.getInstanceParams());
-    }
-    
-    render(component, ...params) {
-        return this.instantiate(component)[renderMethodName](...params);
-    }
-    
-    renderAll(...components) {
-        return (...params) => {
-            let result = {};
-            components.forEach(component =>
-                result[component.name] = this.render(component, ...params));
-            return result;
-        };
-    }
-    
-    asyncRenderAll(...components) {
-        return (...params) => new Promise((resolve, reject) => {
-            let renderedComponents = {};
-            let renderedComponentsCnt = 0;
-            components.forEach(component => this.asyncRender(component, ...params).then(rendering => {
-                renderedComponents[component.name] = rendering;
-                if (++renderedComponentsCnt >= components.length) {
-                    resolve(renderedComponents);
-                }
-            }).catch(reject));
-        });
-    }
-
-    asyncRender(component, ...params) {
+    tagTemplate(strings, ...values) {
         return new Promise((resolve, reject) => {
-            let instance = this.instantiate(component),
-                instanceRender = () => resolve(instance[renderMethodName](...params));
-
-            if (instance[awaitMethodName] !== undefined) {
-                new Promise((awaitResolve, awaitReject) =>
-                    instance[awaitMethodName](awaitResolve, this.getInstanceParams()))
-                .then(instanceRender)
-                .catch(reject);
-            } else {
-                try {
-                    instanceRender();
-                } catch(error) {
-                    reject(error);
+            let resolvedValues = Array(values.length);
+            let resolutionCnt = 0;
+            values.forEach((value, id) => {
+                if (value.then !== undefined) {
+                    value.then(resolution => {
+                        resolvedValues[id] = resolution;
+                        resolutionCnt++;
+                    });
+                } else {
+                    resolvedValues[id] = value;
+                    resolutionCnt++;
+                }       
+                if (++resolutionCnt >= values.length) {
+                    let resolvedTemplate = strings.map((string, id) =>
+                        string + resolvedValues[id] ? resolvedValues[id] : '').join('');
+                    resolve(resolvedTemplate);
                 }
-            }
+            });
         });
+    }
+
+    render(component, renderParam) {
+        return new component(this.helpers())[renderMethodName](renderParam, this.helpers());
     }
 }
 
 
 
 class Message {
-    render({ message, type  = 'info' } = {}) {
-        return `<h1 class="${ type }">${ message }</h1>`;
+    template({ message, type  = 'info' } = {}, _) {
+        return _`<h1 class="${ type }">${ message }</h1>`;
     }
 }
 
 class Button {
-    render({ text } = {}) {
-        return `<button></button>`;
+    template({ text } = {}, { _ }) {
+        return _`<button></button>`;
     }
 }
 
@@ -93,8 +67,8 @@ class HomePage {
         this.components = components;
     }
 
-    render({ subtitle }) {
-        return `
+    template({ subtitle }, { _ }) {
+        return _`
             <h1>${ this.title }<h1>
             <p>${ subtitle }</p>
             <hr/>
