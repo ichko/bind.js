@@ -1,6 +1,6 @@
 const renderMethodName = 'template';
 
-class TemplateRenderer {
+class $ {
     constructor(container = {}) {
         this.container = container;
     }
@@ -16,45 +16,37 @@ class TemplateRenderer {
             components: this.container,
         };
     }
-    
-    asyncTag(strings, ...values) {
-        return new Promise((resolve, reject) => Promise.all(values)
-            .then(rendered => resolve(strings.map((string, id) =>
-                string + (rendered[id] ? rendered[id] : '')).join(''))));
-    }
 
     render(component, renderParam) {
-        return Promise.resolve(new component(this.helpers())[renderMethodName](this.asyncTag, renderParam, this.helpers()));
+        return Promise.resolve(new component(this.helpers())[renderMethodName](renderParam, this.helpers()));
+    }
+    
+    static async(literals, ...values) {
+        return new Promise((resolve, reject) => Promise.all(values)
+            .then(rendered => resolve(literals.map((literal, id) =>
+                literal + (rendered[id] ? rendered[id] : '')).join(''))));
     }
 }
 
 
 
 class Message {
-    template($, { message, type  = 'info' } = {}) {
-        return $ `<h1 class="${ type }">${ message }</h1>`;
-    }
-}
-
-class Button {
-    template($) {
-        return $ `<button></button>`;
+    template({ text, type  = 'info' } = {}) {
+        return `<h1 class="${ type }">${ text }</h1>`;
     }
 }
 
 class HomePage {
     constructor() {
-        this.title = 'Hello world';
+        this.title = 'Home page';
     }
 
-    template($, { subtitle }, { render }) {
-        return $ `
-            <h1>${ this.title }<h1>
-            <p>${ subtitle }</p>
+    template({ style }, { render }) {
+        return $.async `
+            <h1 class="${ style }">${ this.title }<h1>
             <hr/>
             <div class="body">
-                ${ render(Message, { message: 'Home page' }) }
-                ${ render(Button) }
+                ${ render(Message, { text: 'Home page' }) }
             </div>
         `;
     }
@@ -62,8 +54,4 @@ class HomePage {
 }
 
 
-let engine = new TemplateRenderer().register(
-    HomePage
-);
-
-engine.render(HomePage, { subtitle: 'subtitle' }).then(console.log);
+new $().render(HomePage, { style: 'dark' }).then(console.log);
