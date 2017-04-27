@@ -1,7 +1,8 @@
 ## JS Data binding
 JS lib for bidirectional data binding written in ES6.
 
-## Examples
+
+## Binding examples
 Demo in action [here](https://rawgit.com/ichko/bind.js/master/index.html).
 
 #### Cyclical bindings
@@ -52,4 +53,44 @@ let model = val('TEST ').bind(
 
 let time = 0;
 setInterval(_ => model.append(`${ time++ } `), 500);
+```
+
+## Component examples
+
+JS
+```javascript
+class Message {
+    template({ text, type  = 'info' } = {}) {
+        return `<h1 class="${ type }">${ text }</h1>`;
+    }
+}
+
+class HomePage {
+    constructor() {
+        this.title = 'Home page';
+    }
+
+    template({ style }, { render }) {
+        return $.async `
+            <h1 class="${ style }">${ this.title }<h1>
+            <hr/>
+            <div class="body">
+                ${ render(Message, { text: 'hello world' }) }
+            </div>
+        `;
+    }
+
+}
+
+
+new $().render(HomePage, { style: 'dark' }).then(console.log);
+```
+
+Output
+```html
+<h1 class="dark">Home page<h1>
+<hr/>
+<div class="body">
+    <h1 class="info">hello world</h1>
+</div>
 ```
