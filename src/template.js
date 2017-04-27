@@ -1,30 +1,53 @@
-const renderMethodName = 'template';
+let renderMethodName = 'template';
+let idSeed = 0;
+let getId = () => idSeed++;
 
-class $ {
-    constructor(container = {}) {
-        this.container = container;
+
+class RenderedComponent {
+    constructor(...view) {
+        this.view = view;
+    }
+}
+
+class Templater {
+    constructor(renderingContext) {
+        this.renderingContext = renderingContext;
+        this.helpers = {
+            render: (...args) => this.render(...args),
+            view: (...args) => this.templateTag(...args)
+        };
     }
     
-    register(...types) {
-        types.forEach(type => this.container[type.name] = type);
+    helper(types) {
+        for (let name in types) {
+            this.helpers[name] = types.name;
+        }
         return this;
     }
     
-    helpers() {
-        return {
-            render: (...args) => this.render(...args),
-            components: this.container,
-        };
+    transform(args) {
+        // TODO: implement plugin rendering 
+        return {};
     }
 
     render(component, renderParam) {
-        return Promise.resolve(new component(this.helpers())[renderMethodName](renderParam, this.helpers()));
+        return this.transform(new RenderedComponent(new component(this.helpers
+            [renderMethodName](renderParam, this.helpers))));
     }
     
-    static async(literals, ...values) {
-        return new Promise((resolve, reject) => Promise.all(values)
-            .then(rendered => resolve(literals.map((literal, id) =>
-                literal + (rendered[id] ? rendered[id] : '')).join(''))));
+    templateTag(literals, ...values) {
+        return literals.reduce((result, literal, id) =>
+            result.concat(literal, [...values, ''][id]));
+    }
+}
+
+class RenderContainer {
+    constructor() {
+        this.container = new Map();
+    }
+
+    set(key, value) {
+        this.container.set(key, value);
     }
 }
 
@@ -39,14 +62,19 @@ class Message {
 class HomePage {
     constructor() {
         this.title = 'Home page';
+        this.todos = ['habala', 'babala'];
     }
 
-    template({ style }, { render }) {
-        return $.async `
+    template({ style }, { view, render, foreach }) {
+        return view `
             <h1 class="${ style }">${ this.title }<h1>
             <hr/>
+            ${ new Promise(resolve => setTimeout(resolve, 1000, 'done')) }
             <div class="body">
-                ${ render(Message, { text: 'Home page' }) }
+                ${ render(Message, { text: 'hello world' }) }
+                <ul>
+                    ${ foreach(this.todos, item => view `<li>${ item }</li>`) }
+                </ul>
             </div>
         `;
     }
@@ -54,4 +82,4 @@ class HomePage {
 }
 
 
-new $().render(HomePage, { style: 'dark' }).then(console.log);
+new Templater(new RenderContainer()).render(HomePage, { style: 'dark' }).then(console.log);
