@@ -3,15 +3,9 @@ let idSeed = 0;
 let getId = () => idSeed++;
 
 
-class RenderedComponent {
-    constructor(...view) {
-        this.view = view;
-    }
-}
-
 class Templater {
-    constructor(renderingContext) {
-        this.renderingContext = renderingContext;
+    constructor(dom) {
+        this.dom = dom;
         this.helpers = {
             render: (...args) => this.render(...args),
             view: (...args) => this.templateTag(...args)
@@ -24,15 +18,18 @@ class Templater {
         }
         return this;
     }
-    
-    transform(args) {
-        // TODO: implement plugin rendering 
-        return {};
-    }
 
     render(component, renderParam) {
-        return this.transform(new RenderedComponent(new component(this.helpers
-            [renderMethodName](renderParam, this.helpers))));
+        return new Promise(resolve => {
+            let normalized = (arg => arg.length ? arg : [arg])
+                (new component(this.helpers)[renderMethodName]
+                (renderParam, this.helpers));
+
+            Promise.all(normalized)
+                .then(items => Promise.all(items.map(item =>
+                    typeof item == 'function' ? item(this.dom) : item)))
+                .then(raw => resolve(raw.join('')));
+        });
     }
     
     templateTag(literals, ...values) {
