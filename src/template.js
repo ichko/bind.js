@@ -20,16 +20,14 @@ class Templater {
     }
 
     render(component, renderParam) {
-        return new Promise(resolve => {
-            let normalized = (arg => arg.length ? arg : [arg])
-                (new component(this.helpers)[renderMethodName]
-                (renderParam, this.helpers));
+        let normalized = (arg => Array.isArray(arg) ? arg : [arg])
+            (new component(this.helpers)[renderMethodName]
+            (renderParam, this.helpers));
 
-            Promise.all(normalized)
-                .then(items => Promise.all(items.map(item =>
-                    typeof item == 'function' ? item(this.dom) : item)))
-                .then(raw => resolve(raw.join('')));
-        });
+        Promise.all(normalized)
+            .then(items => Promise.all(items.map(item =>
+                typeof item == 'function' ? item(this.dom) : item)))
+            .then(raw => raw.forEach(it => this.dom.add(it)));
     }
     
     templateTag(literals, ...values) {
@@ -38,9 +36,28 @@ class Templater {
     }
 }
 
-class RenderContainer {
+class Dom {
     constructor() {
         this.container = new Map();
+        this.asyncCnt = 0;
+    }
+    
+    startAsync() {
+        this.asyncCnt++;
+    }
+    
+    endAsync() {
+        this.asyncCnt = this.asyncCnt <= 0 ? this.asyncCnt : --this.asyncCnt;
+    }
+    
+    ready() {
+        return this.asyncCnt === 0;
+    }
+    
+    add(value) {
+        let id = getId();
+        this.set(id, value);
+        return value;
     }
 
     set(key, value) {
@@ -79,4 +96,4 @@ class HomePage {
 }
 
 
-new Templater(new RenderContainer()).render(HomePage, { style: 'dark' }).then(console.log);
+new Templater(new Dom()).render(HomePage, { style: 'dark' }).then(console.log);
