@@ -3,7 +3,7 @@ let idSeed = 0;
 let getId = () => idSeed++;
 
 
-class Templater {
+export class Spa {
     constructor(dom) {
         this.dom = dom;
         this.helpers = {
@@ -36,7 +36,27 @@ class Templater {
     }
 }
 
-class Dom {
+export class Node {
+    constructor(name) {
+        this.name = name;
+        this.content = new Map();
+    }
+
+    add(content) {
+        let id = getId();
+        this.content[id] = content;
+        return id;
+    }
+    
+    render() {
+        let content = '';
+        this.content.forEach((key, value) => content += value.render());
+
+        this `<${ this.name }>${ content }</${ this.name }>`;
+    }
+}
+
+export class Dom {
     constructor() {
         this.container = new Map();
         this.asyncCnt = 0;
@@ -64,36 +84,3 @@ class Dom {
         this.container.set(key, value);
     }
 }
-
-
-
-class Message {
-    template({ text, type  = 'info' } = {}) {
-        return `<h1 class="${ type }">${ text }</h1>`;
-    }
-}
-
-class HomePage {
-    constructor() {
-        this.title = 'Home page';
-        this.todos = ['habala', 'babala'];
-    }
-
-    template({ style }, { view, render, foreach }) {
-        return view `
-            <h1 class="${ style }">${ this.title }<h1>
-            <hr/>
-            ${ new Promise(resolve => setTimeout(resolve, 1000, 'done')) }
-            <div class="body">
-                ${ render(Message, { text: 'hello world' }) }
-                <ul>
-                    ${ foreach(this.todos, item => view `<li>${ item }</li>`) }
-                </ul>
-            </div>
-        `;
-    }
-
-}
-
-
-new Templater(new Dom()).render(HomePage, { style: 'dark' }).then(console.log);
