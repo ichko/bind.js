@@ -1,5 +1,5 @@
 import { Variable } from '.bind';
-import { getId } from '.utils';
+import { id, tag } from '.utils';
 
 
 export class Node extends Variable {
@@ -9,8 +9,7 @@ export class Node extends Variable {
     }
 
     add(content) {
-        this.set(getId());
-        return this;
+        return this.set({ id: id(), content });
     }
 
     set({ id, content= '' } = {}) {
@@ -19,8 +18,7 @@ export class Node extends Variable {
     }
 
     render() {
-        let content = Array.from(this.content.values())
-            .map(value => typeof content == 'string' ? value : value.render());
-        this `<${ this.name }>${ content }</${ this.name }>`;
+        return tag(name, Array.from(this.content.values()).map(value =>
+            typeof content === 'string' ? value : value.render()));
     }
 }

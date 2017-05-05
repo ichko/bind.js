@@ -6,7 +6,7 @@ export class Spa {
             view: (...args) => this.templateTag(...args)
         };
     }
-    
+
     helper(types) {
         for (let name in types) {
             this.helpers[name] = types.name;
