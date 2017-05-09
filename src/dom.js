@@ -1,8 +1,18 @@
-import { Variable } from '.bind';
 import { id, tag } from '.utils';
 
+export const component = () => new Node('component');
 
-export class Node extends Variable {
+export class Static {
+    constructor(value = '') {
+        this.value = value;
+    }
+    
+    render() {
+        return this.value;
+    }
+}
+
+export class Node {
     constructor(name) {
         this.name = name;
         this.content = new Map();
@@ -18,7 +28,6 @@ export class Node extends Variable {
     }
 
     render() {
-        return tag(this.name, Array.from(this.content.values()).map(value =>
-            typeof content === 'string' ? value : value.render()));
+        return tag(this.name, Array.from(this.content.values()).map(value => value.render()));
     }
 }
