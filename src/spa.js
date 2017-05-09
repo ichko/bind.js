@@ -32,14 +32,3 @@ export class Spa {
             result.concat(literal, [...values, ''][id]));
     }
 }
-
-export class Node {
-    constructor(name) {
-        this.name = name;
-        this.content = new Map();
-    }
-
-    add(content) {
-        this.content[id()] = content;
-    }
-}
