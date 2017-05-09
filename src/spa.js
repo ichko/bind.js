@@ -1,3 +1,5 @@
+import { id, renderMethodName } from './utils';
+
 export class Spa {
     constructor(dom) {
         this.dom = dom;
@@ -12,7 +14,7 @@ export class Spa {
             this.helpers[name] = types.name;
         }
         return this;
-
+    }
 
     render(component, renderParam) {
         let normalized = (arg => Array.isArray(arg) ? arg : [arg])
@@ -28,6 +30,16 @@ export class Spa {
     templateTag(literals, ...values) {
         return literals.reduce((result, literal, id) =>
             result.concat(literal, [...values, ''][id]));
+    }
+}
 
-=======
->>>>>>> a816931b01a7bee4c3fdb5d653d90767b846d204
+export class Node {
+    constructor(name) {
+        this.name = name;
+        this.content = new Map();
+    }
+
+    add(content) {
+        this.content[id()] = content;
+    }
+}

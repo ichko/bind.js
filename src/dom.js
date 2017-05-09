@@ -18,7 +18,7 @@ export class Node extends Variable {
     }
 
     render() {
-        return tag(name, Array.from(this.content.values()).map(value =>
+        return tag(this.name, Array.from(this.content.values()).map(value =>
             typeof content === 'string' ? value : value.render()));
     }
 }
