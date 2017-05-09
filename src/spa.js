@@ -43,11 +43,9 @@ export class Node {
     }
 
     add(content) {
-        let id = getId();
-        this.content[id] = content;
-        return id;
+        this.content[getId()] = content;
     }
-    
+
     render() {
         let content = '';
         this.content.forEach((key, value) => content += value.render());
@@ -56,31 +54,9 @@ export class Node {
     }
 }
 
-export class Dom {
-    constructor() {
+export class VirtualDom {
+    constructor(tag = 'component') {
+        this.tag = tag;
         this.container = new Map();
-        this.asyncCnt = 0;
-    }
-    
-    startAsync() {
-        this.asyncCnt++;
-    }
-    
-    endAsync() {
-        this.asyncCnt = this.asyncCnt <= 0 ? this.asyncCnt : --this.asyncCnt;
-    }
-    
-    ready() {
-        return this.asyncCnt === 0;
-    }
-    
-    add(value) {
-        let id = getId();
-        this.set(id, value);
-        return value;
-    }
-
-    set(key, value) {
-        this.container.set(key, value);
     }
 }

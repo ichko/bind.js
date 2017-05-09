@@ -1,26 +1,33 @@
-import { dom, val, obj } from './bind';
+import { Spa, Dom } from './spa';
 
-let variable = val('TEST ').bind(
-    dom('#first'),
-    dom('#second'),
-    dom('#third')
-);
 
-let time = 0;
-setInterval(_ => variable.append(`${ time++ } `), 500);
+class Message {
+    template({ text, type  = 'info' } = {}) {
+        return `<h1 class="${ type }">${ text }</h1>`;
+    }
+}
 
-let model = obj({
-    foo: {
-        bar: 'hello',
-        baz: 'world'
-    },
-    moo: 666
-});
+class HomePage {
+    constructor() {
+        this.title = 'Home page';
+        this.todos = ['habala', 'babala'];
+    }
 
-model.foo.bar.bind(dom('#foo'), dom('#bar'));
-model.foo.baz.bind(dom('#moo'), dom('#bar'), model.moo);
+    template({ style }, { view, render, foreach }) {
+        return view `
+            <h1 class="${ style }">${ this.title }<h1>
+            <hr/>
+            ${ new Promise(resolve => setTimeout(resolve, 1000, 'done')) }
+            <div class="body">
+                ${ render(Message, { text: 'hello world' }) }
+                <ul>
+                    ${ foreach(this.todos, item => view `<li>${ item }</li>`) }
+                </ul>
+            </div>
+        `;
+    }
 
-model.moo = Array(4).join('wat' - 1);
-dom('#foo').append(' Batman!');
+}
 
-console.log(model);
+
+new Spa(new Dom()).render(HomePage, { style: 'dark' }).then(console.log);

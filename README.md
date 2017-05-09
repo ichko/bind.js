@@ -30,6 +30,8 @@ model.foo.baz.bind(dom('#moo'), dom('#bar'), model.moo);
 
 model.moo = Array(4).join('wat' - 1);
 dom('#foo').append(' Batman!');
+
+console.log(model);
 ```
 
 #### Simple
@@ -45,14 +47,14 @@ JS
 ```javascript
 import { dom, val } from './bind';
 
-let model = val('TEST ').bind(
+let variable = val('TEST ').bind(
     dom('#first'),
     dom('#second'),
     dom('#third')
 );
 
 let time = 0;
-setInterval(_ => model.append(`${ time++ } `), 500);
+setInterval(_ => variable.append(`${ time++ } `), 500);
 ```
 
 ## Component examples
